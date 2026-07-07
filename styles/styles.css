@@ -1,0 +1,272 @@
+/* ============================================================================
+   Milky Way Habitability Explorer -- sim-specific styles only.
+   Shared palette, .panel, .sr-only, focus handling, etc. come from
+   foundation/kl-unl.css and are NEVER overridden here. This file only adds
+   layout + components the foundation does not provide.
+   ========================================================================== */
+
+/* Shown only when opened over file:// (see simulation.js showFileProtocolNotice). */
+.mw-file-warning {
+  margin:         0.9rem;
+  padding:        0.85rem 1rem;
+  font-size:      1.05rem;
+  line-height:    1.45;
+  color:          var(--foreground-color, #1a1a1a);
+  background:     #fff3cd;                /* soft amber notice */
+  border-width:   var(--border-width, 1px);
+  border-style:   var(--border-style, solid);
+  border-color:   var(--alert-color-r, #ea351f);
+  border-left-width: 0.35rem;
+  border-radius:  4px;
+}
+
+.mw-file-warning code {
+  font-family:    ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background:     rgba(0, 0, 0, 0.06);
+  padding:        0 0.2rem;
+  border-radius:  3px;
+}
+
+/* Larger, zoomable base type for all sim content (rule 10: >=1.125rem floor). */
+.mw-layout {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.9rem;
+  padding:        0.9rem;
+  font-size:      1.125rem;
+  line-height:    1.45;
+}
+
+.mw-panel {
+  border-width:   var(--border-width, 1px);
+  border-style:   var(--border-style, solid);
+  border-color:   var(--border-color, #767676);
+}
+
+.mw-panel .panel__heading {
+  font-size:      1.2rem;
+  color:          #333333;               /* matches original panel title grey (0x333333) */
+}
+
+.mw-panel .panel__help {
+  font-size:      1.05rem;
+  font-style:     italic;
+  line-height:    1.4;
+  margin:         0.75rem 1rem 0.25rem;
+}
+
+/* ---------------------------------------------------------------- galaxy --- */
+.mw-panel--galaxy {
+  background:     #000000;               /* image sits on black, like the original */
+  padding:        0;
+}
+
+.mw-galaxy-wrap {
+  position:       relative;
+  line-height:    0;
+}
+
+.mw-galaxy-canvas {
+  display:        block;
+  width:          100%;
+  height:         auto;                  /* preserve 846:300 aspect ratio */
+}
+
+/* Sun marker overlay (dot + label). Positioned by fraction of the 846x300 stage:
+   galactic centre + 8 kpc*19px = x 575/846 = 68.0%, y 144/300 = 48.0%. */
+.mw-sun {
+  position:       absolute;
+  left:           68.0%;
+  top:            48.0%;
+  transform:      translate(-50%, -50%);
+  display:        flex;
+  align-items:    center;
+  gap:            0.3rem;
+  pointer-events: none;
+}
+
+.mw-sun__dot {
+  width:          0.5rem;
+  height:         0.5rem;
+  border-radius:  50%;
+  background:     #ffffff;
+  box-shadow:     0 0 2px rgba(0, 0, 0, 0.9);
+}
+
+.mw-sun__label {
+  color:          #ffffff;
+  font-size:      1.05rem;
+  font-weight:    600;
+  text-shadow:    0 0 3px rgba(0, 0, 0, 0.95);
+  line-height:    1;
+}
+
+.mw-credit {
+  position:       absolute;
+  right:          0.6rem;
+  bottom:         0.4rem;
+  margin:         0;
+  color:          #ffffff;
+  font-size:      0.9rem;
+  line-height:    1;
+  text-shadow:    0 0 3px rgba(0, 0, 0, 0.95);
+}
+
+/* --------------------------------------------------------------- control --- */
+.mw-control-body {
+  padding:        0 1rem 0.9rem;
+}
+
+.mw-control-desc {
+  margin:         0.4rem 0 0.9rem;
+  font-size:      1.05rem;
+}
+
+/* On wider screens, fill the description's lines to the right margin so its right
+   edge lines up with the "N.N kpc" readout. Skipped on narrow widths, where
+   justify would open up ugly word gaps. */
+@media (min-width: 40rem) {
+  .mw-control-desc {
+    text-align:   justify;
+  }
+}
+
+.mw-control-row {
+  display:        grid;
+  grid-template-columns: auto 1fr auto;
+  align-items:    center;
+  gap:            0.6rem 0.9rem;
+}
+
+.mw-control-label {
+  font-weight:    600;
+}
+
+.mw-readout {
+  min-width:      6.5rem;
+  text-align:     right;
+  font-variant-numeric: tabular-nums;
+  font-size:      1.15rem;
+  white-space:    nowrap;
+}
+
+/* Native range slider -- kept native for full keyboard support (arrows / Page /
+   Home / End come for free). Only sizing/appearance is layered on top. */
+.mw-slider {
+  width:          100%;
+  min-height:     2.75rem;               /* comfortable touch target */
+  cursor:         pointer;
+  accent-color:   var(--button-background-color, #005a9c);
+  touch-action:   pan-y;                 /* let vertical scroll through, slider drags horizontally */
+}
+
+/* Larger thumb (additive vendor pseudos; standards value handled by accent-color) */
+.mw-slider::-webkit-slider-thumb { }     /* left default; accent-color styles it */
+.mw-slider:focus-visible {
+  outline-width:  0.125rem;
+  outline-style:  solid;
+  outline-color:  var(--outline-color, #005fcc);
+  outline-offset: 0.2rem;
+}
+
+/* ----------------------------------------------------------------- plots --- */
+.mw-graphs {
+  display:        grid;
+  grid-template-columns: 1fr 1fr;
+  gap:            0.9rem;
+}
+
+.mw-panel--plot {
+  display:        flex;
+  flex-direction: column;
+}
+
+/* Push the plot to the bottom of the panel so both graphs' axes and x-labels
+   line up even when the italic help text wraps to a different number of lines.
+   (The .mw-graphs grid stretches both panels to equal height.) */
+.mw-plot-outer {
+  margin-top:     auto;
+  padding:        0.5rem 1rem 3rem 2rem;  /* room for y-title (left) + ticks/x-title (bottom) */
+}
+
+.mw-plot-wrap {
+  position:       relative;
+  line-height:    0;
+}
+
+.mw-plot-canvas {
+  display:        block;
+  width:          100%;
+  height:         auto;                  /* preserve 380:236 aspect ratio */
+  touch-action:   none;                  /* dragging the marker never scrolls the page */
+  cursor:         ew-resize;
+}
+
+/* x-axis numeric ticks: absolute, positioned by JS (left = fraction of canvas). */
+.mw-xtick {
+  position:       absolute;
+  top:            100%;
+  transform:      translate(-50%, 0.15rem);
+  font-size:      1rem;
+  line-height:    1;
+  color:          var(--foreground-color, #1a1a1a);
+  white-space:    nowrap;
+}
+
+.mw-xaxis-title {
+  position:       absolute;
+  top:            100%;
+  left:           48.3%;
+  transform:      translate(-50%, 1.3rem);  /* sits above the panel's bottom gap */
+  font-size:      1.05rem;
+  line-height:    1.2;
+  color:          var(--foreground-color, #1a1a1a);
+  white-space:    nowrap;
+}
+
+.mw-yaxis-title {
+  position:       absolute;
+  right:          100%;
+  top:            51.3%;                 /* axis-box vertical midpoint: (105+16)/236 */
+  transform:      translateY(-50%) rotate(180deg);
+  writing-mode:   vertical-rl;
+  margin-right:   0.4rem;
+  font-size:      1.05rem;
+  line-height:    1;
+  white-space:    nowrap;
+  color:          var(--foreground-color, #1a1a1a);
+}
+
+/* MathJax inline math should not force line-height:0 layout to collapse. */
+.mw-xtick mjx-container,
+.mw-xaxis-title mjx-container,
+.mw-yaxis-title mjx-container,
+.mw-readout mjx-container { line-height: normal; }
+
+/* =============================== responsive =============================== */
+/* Below the foundation's 56rem collapse: stack the two graphs into one column
+   and let the control row wrap for phone-portrait widths. */
+@media (max-width: 56rem) {
+  .mw-graphs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 30rem) {
+  .mw-control-row {
+    grid-template-columns: 1fr auto;
+  }
+  .mw-slider {
+    grid-column:  1 / -1;
+    order:        3;
+  }
+  .mw-plot-outer {
+    padding:      0.5rem 0.5rem 3rem 1.9rem;
+  }
+}
+
+/* Reduced motion: this sim has no autonomous animation (all changes are
+   user-driven and instantaneous), so nothing to disable, but honor intent. */
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto; }
+}

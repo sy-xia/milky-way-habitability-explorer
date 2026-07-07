@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Milky Way Habitability Explorer</title>
+
+  <!-- KL-UNL shared foundation (copied in unchanged) -->
+  <link href="foundation/kl-unl.css" type="text/css" rel="stylesheet" media="all">
+  <link href="styles/styles.css" type="text/css" rel="stylesheet" media="all">
+
+  <!-- MathJax: configured for inline \( \) math. Loaded from a LOCAL foundation
+       copy (no CDN). If the file is not present the sim degrades gracefully to
+       clean plain-text numbers/units (see simulation.js typesetMath()). -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']] },
+      options: { menuOptions: { settings: { assistiveMml: true } } },
+      startup: {
+        ready: function () {
+          MathJax.startup.defaultReady();
+          if (window.__mwOnMathJaxReady) window.__mwOnMathJaxReady();
+        }
+      }
+    };
+  </script>
+  <script src="foundation/tex-mml-chtml.js" id="MathJax-script" async></script>
+
+  <script defer src="foundation/kl-unl-masthead.js"></script>
+  <script defer src="foundation/kl-unl.js"></script>
+  <script defer src="simulation.js"></script>
+</head>
+<body>
+  <a class="sr-only sr-only-focusable" href="#mw-main">Skip to simulation</a>
+
+  <div class="app-shell">
+    <!-- Title bar + Reset / Help / About come from the shared masthead component.
+         It reads its text from foundation/contents.json by sim-id and dispatches
+         the bubbling "sim-reset" event. Do not build a competing masthead. -->
+    <kl-unl-masthead sim-id="milkyWayHabitability" json-url="foundation/contents.json"></kl-unl-masthead>
+
+    <main id="mw-main" class="mw-layout">
+
+      <!-- ============================ GALAXY MAP ============================ -->
+      <section class="panel mw-panel mw-panel--galaxy" aria-labelledby="mw-galaxy-h">
+        <h2 id="mw-galaxy-h" class="sr-only">Milky Way galaxy map</h2>
+        <div class="panel__canvas-wrap mw-galaxy-wrap">
+          <canvas id="mw-galaxy" class="mw-galaxy-canvas" width="846" height="300"
+                  role="img" aria-label="Top-down map of the Milky Way galaxy."></canvas>
+
+          <!-- Sun marker and image credit as HTML overlays (zoomable, readable) -->
+          <div class="mw-sun" aria-hidden="true">
+            <span class="mw-sun__dot"></span>
+            <span class="mw-sun__label">Sun</span>
+          </div>
+          <p class="mw-credit">NASA/JPL-Caltech</p>
+        </div>
+      </section>
+
+      <!-- ============================ DISTANCE CONTROL ===================== -->
+      <section class="panel mw-panel mw-panel--control" aria-labelledby="mw-control-h">
+        <h2 id="mw-control-h" class="panel__heading">Distance from Galactic Center</h2>
+        <div class="mw-control-body">
+          <p id="mw-control-desc" class="mw-control-desc">
+            Drag either red graph marker, or use this slider, to choose a distance
+            from the center of the galaxy. The pink ring on the map and both graph
+            markers update together.
+          </p>
+          <div class="mw-control-row">
+            <label id="mw-dist-label" class="mw-control-label" for="mw-dist">Distance</label>
+            <input id="mw-dist" class="mw-slider" type="range"
+                   min="1.2" max="22" step="0.1" value="18"
+                   aria-describedby="mw-control-desc"
+                   aria-valuetext="Distance from galactic center, 18.0 kiloparsecs">
+            <output id="mw-readout" class="mw-readout" for="mw-dist" aria-hidden="true"></output>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ GRAPHS =============================== -->
+      <div class="mw-graphs">
+
+        <!-- Catastrophic Event Probability Graph -->
+        <section class="panel mw-panel mw-panel--plot" aria-labelledby="mw-risk-h">
+          <h2 id="mw-risk-h" class="panel__heading">Catastrophic Event Probability Graph</h2>
+          <p class="panel__help">the graph below estimates the likelihood of a planet experiencing a sterilization event, such as from a nearby supernova explosion</p>
+          <div class="mw-plot-outer">
+            <div class="panel__canvas-wrap mw-plot-wrap">
+              <span class="mw-yaxis-title">extinction risk</span>
+              <canvas id="mw-risk" class="mw-plot-canvas" width="380" height="236"
+                      role="img" aria-label="Line graph of extinction risk versus distance from the galactic center."></canvas>
+              <span class="mw-xtick" data-mw-x="0"></span>
+              <span class="mw-xtick" data-mw-x="1"></span>
+              <span class="mw-xtick" data-mw-x="2"></span>
+              <span class="mw-xtick" data-mw-x="3"></span>
+              <span class="mw-xtick" data-mw-x="4"></span>
+              <span class="mw-xaxis-title" data-mw-axis-title></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Heavy Elements Abundance Graph -->
+        <section class="panel mw-panel mw-panel--plot" aria-labelledby="mw-metals-h">
+          <h2 id="mw-metals-h" class="panel__heading">Heavy Elements Abundance Graph</h2>
+          <p class="panel__help">the graph below shows the distribution of elements heavier than hydrogen and helium, from which planets are made</p>
+          <div class="mw-plot-outer">
+            <div class="panel__canvas-wrap mw-plot-wrap">
+              <span class="mw-yaxis-title">heavy elements abundance</span>
+              <canvas id="mw-metals" class="mw-plot-canvas" width="380" height="236"
+                      role="img" aria-label="Line graph of heavy elements abundance versus distance from the galactic center."></canvas>
+              <span class="mw-xtick" data-mw-x="0"></span>
+              <span class="mw-xtick" data-mw-x="1"></span>
+              <span class="mw-xtick" data-mw-x="2"></span>
+              <span class="mw-xtick" data-mw-x="3"></span>
+              <span class="mw-xtick" data-mw-x="4"></span>
+              <span class="mw-xaxis-title" data-mw-axis-title></span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Polite live region: announces committed distance changes with units -->
+      <p id="mw-live" class="sr-only" aria-live="polite"></p>
+    </main>
+  </div>
+</body>
+</html>
