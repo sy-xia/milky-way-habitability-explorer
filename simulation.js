@@ -58,6 +58,34 @@
   var METALS_A = { x: -1.0, y: 13.65 };
   var METALS_B = { x: 345.0, y: 196.9 };
 
+  // Sampled polylines (drawn axis coords) so we can READ each curve's height at a
+  // given distance and speak a qualitative level. This just reports what the sim
+  // already draws -- no new physics or numbers are invented. Risk curve uses the
+  // same +/- translate as strokeRiskCurve (-8,-5); metals uses (2,-12.65).
+  var riskSamples = (function () {
+    var tx = -8, ty = -5, pts = [[RISK_START.x + tx, RISK_START.y + ty]];
+    var p = [RISK_START.x, RISK_START.y], s, i, t, mt, x, y;
+    for (s = 0; s < RISK_SEGS.length; s++) {
+      var seg = RISK_SEGS[s];
+      for (i = 1; i <= 16; i++) {
+        t = i / 16; mt = 1 - t;
+        x = mt * mt * p[0] + 2 * mt * t * seg[0] + t * t * seg[2];
+        y = mt * mt * p[1] + 2 * mt * t * seg[1] + t * t * seg[3];
+        pts.push([x + tx, y + ty]);
+      }
+      p = [seg[2], seg[3]];
+    }
+    for (i = 1; i <= 8; i++) {
+      t = i / 8;
+      pts.push([p[0] + (RISK_END.x - p[0]) * t + tx, p[1] + (RISK_END.y - p[1]) * t + ty]);
+    }
+    return pts;
+  })();
+  var metalsSamples = [
+    [METALS_A.x + 2, METALS_A.y - 12.65],
+    [METALS_B.x + 2, METALS_B.y - 12.65]
+  ];
+
   // Colours (original values, remapped only where noted -- see ACCESSIBILITY.md).
   var RING_COLOR   = '#ff8080';   // 0xFF8080, verbatim
   var CURVE_COLOR  = '#3399ff';   // #3399ff, verbatim from the shape strokes
@@ -108,6 +136,34 @@
   function spoken(r) {
     return 'Distance from galactic center, ' + fmt(r) + ' kiloparsecs';
   }
+
+  // Read a sampled curve's height at axis-x and normalize to 0..1 (top of plot = 1,
+  // i.e. a high value; the x-axis = 0). Curves are monotonic in x.
+  function curveValueAt(samples, x) {
+    if (x <= samples[0][0]) x = samples[0][0];
+    var last = samples[samples.length - 1];
+    if (x >= last[0]) x = last[0];
+    var y = last[1];
+    for (var i = 1; i < samples.length; i++) {
+      if (x <= samples[i][0]) {
+        var a = samples[i - 1], b = samples[i];
+        var t = (b[0] === a[0]) ? 0 : (x - a[0]) / (b[0] - a[0]);
+        y = a[1] + (b[1] - a[1]) * t;
+        break;
+      }
+    }
+    var v = (AXIS_H - y) / AXIS_H;
+    return v < 0 ? 0 : (v > 1 ? 1 : v);
+  }
+  function levelText(v) {
+    if (v >= 0.8) return 'very high';
+    if (v >= 0.6) return 'high';
+    if (v >= 0.4) return 'moderate';
+    if (v >= 0.2) return 'low';
+    return 'very low';
+  }
+  function riskLevel(r)   { return levelText(curveValueAt(riskSamples,   r * PLOT_SCALE)); }
+  function metalsLevel(r) { return levelText(curveValueAt(metalsSamples, r * PLOT_SCALE)); }
 
   /* ------------------------------ MathJax --------------------------------- */
   // Typeset a small piece of math; degrade to clean plain text if MathJax is
@@ -274,19 +330,22 @@
     // every drag tick when MathJax is present.
     readout.textContent = fmt(r) + ' kpc';
 
-    // Dynamic image descriptions for screen readers.
+    // Dynamic image descriptions for screen readers, including the qualitative
+    // reading of each graph at the current distance.
+    var rl = riskLevel(r), ml = metalsLevel(r);
     galaxyCanvas.setAttribute('aria-label',
       'Top-down map of the Milky Way galaxy. A pink ring marks the selected ' +
       'distance of ' + fmt(r) + ' kiloparsecs from the galactic center. ' +
-      'The Sun lies about ' + SUN_KPC + ' kiloparsecs from the center.');
+      'The Sun lies about ' + SUN_KPC + ' kiloparsecs from the center. At this ' +
+      'distance, extinction risk is ' + rl + ' and heavy element abundance is ' + ml + '.');
     riskCanvas.setAttribute('aria-label',
       'Line graph: extinction risk is very high near the galactic center and ' +
       'falls steeply, leveling off at large distances. A red marker shows the ' +
-      'selected distance, ' + fmt(r) + ' kiloparsecs.');
+      'selected distance, ' + fmt(r) + ' kiloparsecs, where extinction risk is ' + rl + '.');
     metalsCanvas.setAttribute('aria-label',
       'Line graph: heavy elements abundance is highest at the center and ' +
       'decreases steadily with distance. A red marker shows the selected ' +
-      'distance, ' + fmt(r) + ' kiloparsecs.');
+      'distance, ' + fmt(r) + ' kiloparsecs, where heavy element abundance is ' + ml + '.');
   }
 
   /* ------------------------------ setRadius ------------------------------- */
@@ -301,7 +360,9 @@
 
   function announce(r) {
     liveRegion.textContent =
-      'Distance from galactic center set to ' + fmt(r) + ' kiloparsecs.';
+      'Distance from galactic center set to ' + fmt(r) + ' kiloparsecs. ' +
+      'Extinction risk is ' + riskLevel(r) + '; heavy element abundance is ' +
+      metalsLevel(r) + '.';
   }
 
   // Typeset the readout via MathJax (falls back to plain text). Called at commit

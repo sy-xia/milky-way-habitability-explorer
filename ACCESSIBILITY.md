@@ -60,10 +60,19 @@ Target: WCAG 2.1 AA (AAA where reasonable). Built on the KL-UNL foundation
   full phrase *"Distance from galactic center, 18.0 kiloparsecs"* (quantity + value
   + spelled-out unit) -- never a bare number.
 * **Live region** (`aria-live="polite"`, `.sr-only`) announces committed changes
-  with units and context: *"Distance from galactic center set to 12.3
-  kiloparsecs."* Announcements fire on **commit** (pointer release, Reset), not on
-  every drag tick, to avoid flooding. Slider changes are announced by the native
-  control's own `aria-valuetext`, so they are not duplicated in the live region.
+  with units, context, **and a qualitative reading of both graphs at that
+  distance**: *"Distance from galactic center set to 8.0 kiloparsecs. Extinction
+  risk is low; heavy element abundance is high."* Announcements fire on **commit**
+  (pointer release, Reset), not on every drag tick, to avoid flooding. Slider
+  changes are announced by the native control's own `aria-valuetext`, so they are
+  not duplicated in the live region.
+* **Qualitative graph levels.** Extinction risk and heavy-element abundance are
+  unitless, so audio users would otherwise get no sense of the graphs. The narration
+  reads the actual plotted curve height at the selected distance and maps it to a
+  five-step level (very low / low / moderate / high / very high). This only reports
+  what the sim already draws -- no numbers or physics are invented -- and the
+  canvas `aria-label`s and galaxy description carry the same reading (e.g. near the
+  Sun at ~8 kpc: risk low, abundance high -- the habitable sweet spot).
 * The canvas `aria-label`s double as the "what's on screen now" description for
   audio-only users and are kept in sync from the single `render()`.
 
